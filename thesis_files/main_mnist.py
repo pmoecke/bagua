@@ -170,7 +170,7 @@ def main():
         "--algorithm",
         type=str,
         default="gradient_allreduce",
-        help="gradient_allreduce, bytegrad, decentralized, low_precision_decentralized, qadam, async",
+        help="gradient_allreduce, bytegrad, decentralized, low_precision_decentralized, qadam, async, adasum",
     )
     parser.add_argument(
         "--async-sync-interval",
@@ -279,17 +279,9 @@ def main():
         )
     # These lines added
     elif args.algorithm == "adasum":
-        import adasum2
-
-        algorithm = adasum2.AdasumAlgorithm()
-    elif args.algorithm == "adasum_new":
         import adasum3
+        
         algorithm = adasum3.AdasumAlgorithm(model.parameters())
-    elif args.algorithm == "allreducetest":
-        import allreduce_test2
-
-        # optimizer = torch.optim.SGD(model.parameters(), lr = args.lr)
-        algorithm = allreduce_test2.AllreduceAlgorithm()
     else:
         raise NotImplementedError
 
@@ -320,8 +312,6 @@ def main():
         test_losses.append(curr_test_loss)
         scheduler.step()
 
-    # with open("test_accuracy.csv", "w") as file:
-    #     writer = csv.writer(file)
     end = time.time()
     time_ellapsed = end - start
 
@@ -330,9 +320,6 @@ def main():
     with open(f"test_accuracy_{args.algorithm}_{bagua.get_world_size()}gpus.csv", 'a') as f:
         writer = csv.writer(f)
         writer.writerow([time_ellapsed])
-
-    # plot_test_accuarcy(test_accuracies, args.epochs, args.algorithm)
-    # plot_test_error(test_losses, args.epochs, args.algorithm)
 
     if args.save_model:
         torch.save(model.state_dict(), "mnist_cnn.pt")
