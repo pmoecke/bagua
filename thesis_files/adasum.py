@@ -9,13 +9,12 @@ from typing import Dict, List, Tuple
 
 class AdasumTensorBuffers:
     def __init__(self, rec_levels, param) -> None:
-        # torch.cuda.empty_cache()
         self.buffer = []
         self.rank = bagua.get_rank()
 
         start_dim = param.size()
         for i in range(rec_levels):
-            dim_left, dim_right = self.get_dimensions(i + 1, start_dim)  # TODO: check i+1 correct
+            dim_left, dim_right = self.get_dimensions(i + 1, start_dim)
             if self.is_left(i + 1):
                 self.buffer.append(BufferHelp(send_dim=dim_right, recv_dim=dim_left, end_dim=dim_right))
             else:
@@ -90,12 +89,12 @@ class AdasumAlgorithmImpl(AlgorithmImpl):
             comm_groups[i+1] = self.create_groups(i+1)
         return comm_groups
 
-    def create_groups(self, rec_level) -> List[BaguaProcessGroup]:  # TODO: Need to check if they are the same across processes
+    def create_groups(self, rec_level) -> List[BaguaProcessGroup]:
         groups = []
         grp_size = 2 ** rec_level
         counter = 0
         curr_grp = []
-        # Outer loop controls how many comm groups are created per recursion level
+        
         for i in range(self.world_size):  # Should be divisible by grp_size, i.e. a power of 2
             if counter < grp_size:
                 curr_grp.append(i)
@@ -116,7 +115,7 @@ class AdasumAlgorithmImpl(AlgorithmImpl):
                 rank = bagua.get_rank()
                 mid = math.floor(gradient.size()[0]/2)  # split current gradient across first dimension
                 rec_level = int(math.log2(distance) + 1)
-                send_buf, recv_buf, end_buf = self.get_buffers(param_idx, rec_level)  # TODO: Check "send_buf is self.buffer. etc."
+                send_buf, recv_buf, end_buf = self.get_buffers(param_idx, rec_level)  
                 # send_buf2 = self.buffers[param_idx].buffer[rec_level - 1].send_buf // is the same
                 is_left = True
 
@@ -126,8 +125,8 @@ class AdasumAlgorithmImpl(AlgorithmImpl):
                     # print(f"rank: {rank} :: recv: {grad_b.size()}, send: {gradient[mid:,].size()}, neighbor: {neighbor}")
                     send_buf.copy_(gradient[mid:,])
                     bagua.send(tensor=send_buf, dst=neighbor)
-                    bagua.recv(tensor=grad_b, src=neighbor)         # override the half of input which we do not use, could also use a separate buffer
-                    grad_a = gradient[0:mid]                   # TODO: compare to grad_a = gradient[0:mid
+                    bagua.recv(tensor=grad_b, src=neighbor)         
+                    grad_a = gradient[0:mid]                   
                 else:                                               # process left half
                     neighbor = rank - distance
                     grad_a = recv_buf
