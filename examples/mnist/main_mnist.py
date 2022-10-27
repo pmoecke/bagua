@@ -279,9 +279,9 @@ def main():
         )
     # These lines added
     elif args.algorithm == "adasum":
-        import adasum3
+        import adasum
         
-        algorithm = adasum3.AdasumAlgorithm(model.parameters())
+        algorithm = adasum.AdasumAlgorithm(model.parameters())
     else:
         raise NotImplementedError
 
