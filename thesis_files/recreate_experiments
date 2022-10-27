@@ -1,0 +1,16 @@
+This folder contains all files used in the experiments as found in the thesis. We assume to have a working installation of Bagua and multiple NVIDIA GPUs
+available.
+
+In order to recreate the experimental results for the CIFAR-10 dataset follow through this guide:
+
+1) Change directory to bagua/examples/cifar10
+2) Make sure the number of GPUs in CUDA_VISIBLE_DEVICES corresponds to number of GPUs you want to use, i.e. 2, 4, or 8
+3) Run the following in the command line to train with e.g. 4 GPUs using the Adasum algorithm: 
+
+      'python3 -m bagua.distributed.launch --nproc_per_node=4 main_cifar.py --algorithm adasum --set-deterministic'
+      
+4) Use the argument '--algorithm gradient_allreduce' to get the results for synchronous SGD
+5) To adjust the number of GPUs you have to adjust the argument '--nproc_per_node'
+6) This will save a .csv file with test accuracies (and also test errors) for each epoch in training
+
+Note: you may have to make sure that the 'resnet.py' and 'adasum.py' files are visible to the 'main_cifar.py' file.
