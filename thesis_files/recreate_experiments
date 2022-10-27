@@ -10,9 +10,13 @@ In order to recreate the experimental results for the CIFAR-10 dataset follow th
       'python3 -m bagua.distributed.launch --nproc_per_node=4 main_cifar.py --algorithm adasum --set-deterministic'
       
 4) Use the argument '--algorithm gradient_allreduce' to get the results for synchronous SGD
-5) To adjust the number of GPUs you have to adjust the argument '--nproc_per_node'
+5) To adjust the number of GPUs to k, you have to adjust the argument '--nproc_per_node=k'
 6) This will save a .csv file with test accuracies (and also test errors) for each epoch in training
+
+To recreate the results for a batchsize of 1024, change the 'lr = 0.1' on line 203 in the 'main_cifar.py' file to 'lr = 0.8'.
+For a batchsize of 2024, change it to 'lr = 1.6' when using 'gradient_allreduce' and 'lr = 2.0' when using 'adasum'.
 
 Notes: 
  - You may have to make sure that the 'resnet.py' and 'adasum.py' files are visible to the 'main_cifar.py' file.
- - For the MNIST script, change the directory to bagua/examples/mnist and use 'main_mnist.py' instead of 'main_cifar.py' in the command
+ - For the MNIST script, change the directory to bagua/examples/mnist and use 'main_mnist.py' instead of 'main_cifar.py' in the command and proceed
+   as before.
