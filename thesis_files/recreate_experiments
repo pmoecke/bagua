@@ -13,4 +13,6 @@ In order to recreate the experimental results for the CIFAR-10 dataset follow th
 5) To adjust the number of GPUs you have to adjust the argument '--nproc_per_node'
 6) This will save a .csv file with test accuracies (and also test errors) for each epoch in training
 
-Note: you may have to make sure that the 'resnet.py' and 'adasum.py' files are visible to the 'main_cifar.py' file.
+Notes: 
+ - You may have to make sure that the 'resnet.py' and 'adasum.py' files are visible to the 'main_cifar.py' file.
+ - For the MNIST script, change the directory to bagua/examples/mnist and use 'main_mnist.py' instead of 'main_cifar.py' in the command
