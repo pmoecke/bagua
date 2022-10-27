@@ -103,7 +103,7 @@ def main():
         type=int,
         default=60,
         metavar="N",
-        help="number of epochs to train (default: 14)",
+        help="number of epochs to train (default: 60)",
     )
     parser.add_argument(
         "--log-interval",
@@ -122,7 +122,7 @@ def main():
         "--algorithm",
         type=str,
         default="gradient_allreduce",
-        help="gradient_allreduce, bytegrad, decentralized, low_precision_decentralized, qadam, async",
+        help="gradient_allreduce, bytegrad, decentralized, low_precision_decentralized, qadam, async, adasum",
     )
     parser.add_argument(
         "--set-deterministic",
@@ -199,18 +199,11 @@ def main():
     train_loader = torch.utils.data.DataLoader(dataset1, **train_kwargs)
     test_loader = torch.utils.data.DataLoader(dataset2, **test_kwargs)
 
-    # model = models.__dict__["resnet18"](pretrained=False).cuda()
     model = resnet.ResNet18().cuda()
-    # model = dla.SimpleDLA().cuda()
-    # model = resnet9.ResNet9(in_channels=3, num_classes=10).cuda()
-    # model = Net().cuda()
-    # optimizer = optim.Adadelta(model.parameters(), lr=args.lr)
     lr = 0.1
-    grad_clip = 0.1
+
     optimizer = optim.SGD(model.parameters(), lr=lr,
                                 momentum=0.9, nesterov=True, weight_decay=5e-4)
-    # scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer, lr, epochs=args.epochs, 
-    #                                             steps_per_epoch=len(train_loader))
     scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[20, 35, 45], gamma=0.2)
     
     if args.algorithm == "gradient_allreduce":
@@ -244,9 +237,9 @@ def main():
         )
     # These lines added
     elif args.algorithm == "adasum":
-        import adasum_cifar
+        import adasum
 
-        algorithm = adasum_cifar.AdasumAlgorithm(model.parameters())
+        algorithm = adasum.AdasumAlgorithm(model.parameters())
     else:
         raise NotImplementedError
 
@@ -259,15 +252,12 @@ def main():
     if args.fuse_optimizer:
         optimizer = bagua.contrib.fuse_optimizer(optimizer)
 
-    # scheduler = StepLR(optimizer, step_size=1, gamma=args.gamma)
     test_accuracies = []
     test_losses = []
     start = time.time()
     for epoch in range(1, args.epochs + 1):
 
         train(args, model, train_loader, optimizer, epoch, test_loader)
-        # if grad_clip:
-        #     nn.utils.clip_grad_value_(model.parameters(), grad_clip)  # Does this work with bagua??? 
 
         acc, loss = test(model, test_loader)
         scheduler.step()
@@ -277,9 +267,6 @@ def main():
 
     if args.save_model:
         torch.save(model.state_dict(), "cifar10_cnn.pt")
-
-    # plot_test_accuarcy(test_accuracies, args.epochs, args.algorithm)
-    # plot_test_error(test_losses, args.epochs, args.algorithm)
 
     end = time.time()
     time_ellapsed = end - start
